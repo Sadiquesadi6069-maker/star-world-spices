@@ -1,0 +1,453 @@
+
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#00552b">
+<title>STAR WORLD Spices</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#faf5dd;color:#153e27;font:16px system-ui,Arial}
+header{background:linear-gradient(120deg,#003c20,#00853c);color:#ffe477;text-align:center;padding:25px 12px}
+header h1{margin:0;font-size:29px}
+header p{margin:6px;color:white}
+main{max-width:1000px;margin:auto;padding:12px}
+button{border:0;border-radius:11px;background:#007b36;color:white;padding:12px;font-weight:700;cursor:pointer;font-size:14px}
+button:disabled{opacity:.45}
+.alt{background:#e5efdf;color:#19472c}
+.danger{background:#ad3434}
+.full{width:100%}
+.tabs{display:flex;gap:6px;position:sticky;top:0;background:#faf5dd;padding:9px 0;z-index:5}
+.tabs button{flex:1;padding:12px 3px;font-size:13px}
+.panel{background:white;border-radius:17px;padding:15px;margin:14px 0;box-shadow:0 3px 12px #0001}
+.hero{background:linear-gradient(115deg,#003d21,#149444);color:white;border-radius:20px;padding:25px}
+.hero h2{font-size:30px;color:#ffe16a}
+.section{background:linear-gradient(90deg,#004522,#008635);color:white;border-radius:13px;padding:15px;margin:18px 0 12px;font-size:21px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px}
+.product{border:1px solid #ded5a9;background:#fffdf5;border-radius:15px;padding:9px;overflow:hidden}
+.photo{height:145px;background:#f5eed8;display:grid;place-items:center;font-size:55px;border-radius:10px;overflow:hidden}
+.photo img{width:100%;height:100%;object-fit:cover}
+.product h3{font-size:16px;margin:10px 0 5px}
+.price{font-size:21px;color:#007a36;font-weight:800;margin:8px 0}
+.muted{color:#68766b;font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.line{padding:13px 0;border-bottom:1px solid #eee}
+.hidden{display:none!important}
+input,select,textarea{width:100%;padding:13px;margin:7px 0 13px;border:1px solid #c8d0c4;border-radius:10px;font-size:16px;background:white}
+label{font-size:14px;font-weight:700}
+.notice{background:#fff1c6;padding:12px;border-radius:11px;font-size:13px;margin:12px 0}
+.stat{background:#e8f3e7;border-radius:12px;padding:14px;flex:1;min-width:130px}
+.stat strong{display:block;font-size:21px;margin-top:7px}
+.preview{width:150px;height:140px;object-fit:cover;border-radius:12px;margin:8px 0}
+footer{text-align:center;padding:25px;color:#52715a}
+</style>
+</head>
+<body>
+<header>
+<h1>🌶️ STAR WORLD Spices</h1>
+<p>Freshly Packed • Kerala Delivery</p>
+</header>
+<main>
+<div id="notice" class="notice">Connecting to Firebase...</div>
+<nav class="tabs">
+<button onclick="tab('customer')">🛍️ Customer</button>
+<button onclick="tab('staff')">📦 Staff</button>
+<button onclick="tab('owner')">👑 Owner</button>
+</nav>
+
+<section id="customer">
+<div class="hero">
+<p>STAR WORLD · PREMIUM SPICES</p>
+<h2>Discover Your Taste! 🌶️</h2>
+<p>ശുദ്ധമായ മസാലകൾ നിങ്ങളുടെ വീട്ടിലേക്ക്</p>
+<button style="background:#ffe16a;color:#173b25" onclick="document.getElementById('productsPanel').scrollIntoView()">Shop Now</button>
+</div>
+<div class="panel">
+<h2 class="section">⭐ Featured Spices – Top 3 Picks</h2>
+<div id="featured" class="grid"></div>
+</div>
+<div class="panel" id="productsPanel">
+<h2 class="section">🛍️ Our Products</h2>
+<input id="search" placeholder="Search spices..." oninput="renderProducts()">
+<div id="products" class="grid"></div>
+</div>
+<div class="panel">
+<h2>🛒 Shopping Cart <span id="cartcount"></span></h2>
+<div id="cart"></div>
+<h3 id="total"></h3>
+<form id="checkout" onsubmit="placeOrder(event)">
+<h3>Checkout</h3>
+<label>Customer Name</label>
+<input id="buyer" required maxlength="80">
+<label>Phone Number</label>
+<input id="phone" type="tel" required pattern="[0-9]{10}" inputmode="numeric">
+<label>Delivery Address</label>
+<textarea id="address" required maxlength="300"></textarea>
+<label>Kerala PIN Code</label>
+<input id="pin" required pattern="[0-9]{6}" inputmode="numeric">
+<label>Payment Method</label>
+<select id="payment"><option value="COD">Cash on Delivery</option></select>
+<button id="orderButton" class="full">Place Order</button>
+</form>
+</div>
+<div class="panel">
+<h2>🧾 My Orders</h2>
+<input id="trackid" placeholder="Enter your Order ID">
+<button onclick="trackOrder()">Track Order</button>
+<div id="myorders"></div>
+</div>
+</section>
+
+<section id="staff" class="hidden">
+<div id="staffLogin" class="panel">
+<h2>🔐 Staff Login</h2>
+<form onsubmit="login(event,'staff')">
+<label>Email</label><input id="staffEmail" type="email" required>
+<label>Password</label><input id="staffPassword" type="password" required>
+<button class="full">Login</button>
+</form>
+</div>
+<div id="staffArea" class="hidden">
+<div class="panel">
+<div class="row"><h2>📦 Staff Orders</h2><button class="alt" onclick="logout()">Logout</button></div>
+<div id="stafforders"></div>
+</div>
+</div>
+</section>
+
+<section id="owner" class="hidden">
+<div id="ownerLogin" class="panel">
+<h2>👑 Owner Login</h2>
+<form onsubmit="login(event,'owner')">
+<label>Email</label><input id="ownerEmail" type="email" required>
+<label>Password</label><input id="ownerPassword" type="password" required>
+<button class="full">Login</button>
+</form>
+</div>
+<div id="ownerArea" class="hidden">
+<div class="panel">
+<div class="row"><h2>📊 Owner Dashboard</h2><button class="alt" onclick="logout()">Logout</button></div>
+<div id="stats" class="row"></div>
+</div>
+<div class="panel">
+<h2>➕ Add Product</h2>
+<form onsubmit="saveProduct(event)">
+<input type="hidden" id="editId">
+<label>Product Name</label><input id="pname" required>
+<label>Pack Size</label><input id="psize" required placeholder="100g">
+<label>Selling Price ₹</label><input id="pprice" required type="number" min="1">
+<label>Purchase Cost ₹</label><input id="pcost" required type="number" min="0">
+<label>Stock</label><input id="pstock" required type="number" min="0">
+<label>📸 Choose Product Photo</label>
+<input id="photoFile" type="file" accept="image/*" onchange="previewPhoto(event)">
+<img id="photoPreview" class="preview hidden" alt="Photo Preview">
+<input id="pimage" type="hidden">
+<div class="notice">Photo preview works now. Firebase Storage upload will be enabled later.</div>
+<button class="full">💾 Save Product</button>
+</form>
+</div>
+<div class="panel">
+<h2>📋 Products & Stock</h2>
+<button onclick="seedProducts()">Add Default 6 Spices</button>
+<div id="inventory"></div>
+</div>
+<div class="panel"><h2>📦 All Orders</h2><div id="ownerorders"></div></div>
+<div class="panel">
+<h2>💰 Add Expense</h2>
+<form onsubmit="addExpense(event)">
+<label>Expense Name</label><input id="expenseName" required>
+<label>Amount ₹</label><input id="expenseAmount" type="number" min="1" required>
+<button class="full">Save Expense</button>
+</form>
+<div id="expenses"></div>
+</div>
+<div class="panel">
+<h2>📈 Sales & Profit Report</h2>
+<select id="reportPeriod" onchange="renderReport()">
+<option value="today">Today</option>
+<option value="week">Last 7 Days</option>
+<option value="month">Last 30 Days</option>
+<option value="all">All Time</option>
+</select>
+<div id="report"></div>
+<button class="alt" onclick="exportCSV()">Export Orders CSV</button>
+</div>
+</div>
+</section>
+</main>
+<footer>🌶️ STAR WORLD Spices · Kerala, India</footer>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {getFirestore,collection,doc,addDoc,setDoc,updateDoc,deleteDoc,getDoc,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyChggl2FkmYnELvZfVWpg2E9h73Bqnm_-g",
+authDomain:"star-world-spices.firebaseapp.com",
+projectId:"star-world-spices",
+storageBucket:"star-world-spices.firebasestorage.app",
+messagingSenderId:"107891392688",
+appId:"1:107891392688:web:541e951f97b"
+};
+const OWNER_UID="40eAV1PJAlQ7t8xAQ2CLqppqGy62";
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const fs=getFirestore(app);
+const $=id=>document.getElementById(id);
+const money=n=>"₹"+Number(n||0).toFixed(2);
+const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let products=[],orders=[],expenses=[],cart={},role="guest",busy=false;
+let unsubOrders=null,unsubExpenses=null;
+const defaults=[
+{id:"spice1",name:"മഞ്ഞൾപ്പൊടി",size:"100g",price:45,cost:25,stock:40,emoji:"🟡"},
+{id:"spice2",name:"മുളകുപൊടി",size:"100g",price:65,cost:39,stock:35,emoji:"🌶️"},
+{id:"spice3",name:"മല്ലിപ്പൊടി",size:"100g",price:50,cost:30,stock:30,emoji:"🌿"},
+{id:"spice4",name:"ഗരം മസാല",size:"100g",price:95,cost:60,stock:25,emoji:"🫚"},
+{id:"spice5",name:"കുരുമുളക്",size:"100g",price:130,cost:88,stock:20,emoji:"⚫"},
+{id:"spice6",name:"ഏലക്ക",size:"50g",price:190,cost:135,stock:15,emoji:"🌱"}
+];
+function notify(s){$("notice").textContent=s}
+function tab(t){
+["customer","staff","owner"].forEach(x=>$(x).classList.toggle("hidden",x!==t));
+window.scrollTo(0,0);
+}
+window.tab=tab;
+function renderAuth(){
+$("ownerLogin").classList.toggle("hidden",role==="owner");
+$("ownerArea").classList.toggle("hidden",role!=="owner");
+$("staffLogin").classList.toggle("hidden",role==="staff"||role==="owner");
+$("staffArea").classList.toggle("hidden",role!=="staff"&&role!=="owner");
+}
+async function setRole(u){
+role="guest";
+if(u){
+if(u.uid===OWNER_UID)role="owner";
+else{
+try{
+const s=await getDoc(doc(fs,"staff",u.uid));
+if(s.exists()&&s.data().active===true)role="staff";
+}catch(e){console.error(e)}
+}
+}
+renderAuth();
+subscribePrivate();
+}
+onAuthStateChanged(auth,setRole);
+async function login(e,target){
+e.preventDefault();
+try{
+const result=await signInWithEmailAndPassword(auth,$(target+"Email").value.trim(),$(target+"Password").value);
+await setRole(result.user);
+if(target==="owner"&&role!=="owner")throw Error("Owner access denied");
+if(target==="staff"&&role!=="staff"&&role!=="owner")throw Error("Staff access denied");
+notify("Login successful");
+}catch(e){notify(e.message);alert(e.message)}
+}
+window.login=login;
+async function logout(){
+await signOut(auth);role="guest";orders=[];expenses=[];
+subscribePrivate();renderAuth();
+}
+window.logout=logout;
+function subscribePrivate(){
+if(unsubOrders)unsubOrders();
+if(unsubExpenses)unsubExpenses();
+if(role==="owner"||role==="staff"){
+unsubOrders=onSnapshot(collection(fs,"orders"),s=>{
+orders=s.docs.map(d=>({id:d.id,...d.data()}));
+renderOrders();renderReport();
+},e=>notify(e.message));
+}
+if(role==="owner"){
+unsubExpenses=onSnapshot(collection(fs,"expenses"),s=>{
+expenses=s.docs.map(d=>({id:d.id,...d.data()}));
+renderExpenses();renderReport();
+},e=>notify(e.message));
+}
+}
+onSnapshot(collection(fs,"products"),s=>{
+products=s.docs.map(d=>({id:d.id,...d.data()}));
+renderProducts();renderInventory();
+notify("Connected");
+},e=>notify("Firebase error: "+e.message));
+
+function previewPhoto(e){
+const file=e.target.files[0];
+if(!file)return;
+const img=$("photoPreview");
+img.src=URL.createObjectURL(file);
+img.classList.remove("hidden");
+notify("Photo selected. Cloud upload is not enabled yet.");
+}
+window.previewPhoto=previewPhoto;
+
+function photo(p){
+return p.image&&/^https:\/\//i.test(p.image)
+?'<img src="'+safe(p.image)+'" alt="'+safe(p.name)+'">'
+:safe(p.emoji||"🌶️");
+}
+function card(p){
+return '<article class="product"><div class="photo">'+photo(p)+'</div><h3>'+safe(p.name)+'</h3><p class="muted">'+safe(p.size)+' · Stock: '+p.stock+'</p><p class="price">'+money(p.price)+'</p><button class="full" '+(p.stock<=0?"disabled":"")+' onclick="addCart(\''+p.id+'\')">Add to Cart</button></article>';
+}
+function renderProducts(){
+const q=$("search").value.toLowerCase();
+const display=products.length?products:defaults;
+$("featured").innerHTML=display.slice(0,3).map(card).join("");
+$("products").innerHTML=display.filter(p=>p.name.toLowerCase().includes(q)).map(card).join("")||"No products";
+renderCart();
+}
+window.renderProducts=renderProducts;
+function findProduct(id){return products.find(p=>p.id===id)||defaults.find(p=>p.id===id)}
+function addCart(id){
+const p=findProduct(id);if(!p)return;
+if((cart[id]||0)>=p.stock)return alert("Out of stock");
+cart[id]=(cart[id]||0)+1;renderCart();
+}
+window.addCart=addCart;
+function removeCart(id){
+if(!cart[id])return;
+cart[id]--;if(cart[id]<=0)delete cart[id];renderCart();
+}
+window.removeCart=removeCart;
+function renderCart(){
+const items=Object.entries(cart).map(([id,qty])=>({p:findProduct(id),qty})).filter(x=>x.p);
+const total=items.reduce((s,x)=>s+x.p.price*x.qty,0);
+$("cartcount").textContent="("+items.reduce((s,x)=>s+x.qty,0)+")";
+$("cart").innerHTML=items.map(({p,qty})=>'<div class="line row"><span>'+safe(p.name)+' × '+qty+'<br>'+money(p.price*qty)+'</span><span><button class="alt" onclick="removeCart(\''+p.id+'\')">−</button> <button onclick="addCart(\''+p.id+'\')">+</button></span></div>').join("")||"Cart is empty";
+$("total").textContent="Subtotal: "+money(total)+" (Delivery extra)";
+$("checkout").classList.toggle("hidden",!items.length);
+}
+async function placeOrder(e){
+e.preventDefault();if(busy)return;
+const items=Object.entries(cart).map(([id,qty])=>({p:findProduct(id),qty}));
+if(!items.length)return;
+if(items.some(x=>!products.some(p=>p.id===x.p.id)))return alert("Products not published");
+busy=true;$("orderButton").disabled=true;
+try{
+const orderItems=items.map(({p,qty})=>({id:p.id,name:p.name,size:p.size,price:p.price,cost:p.cost,qty}));
+const total=orderItems.reduce((s,i)=>s+i.price*i.qty,0);
+const ref=await addDoc(collection(fs,"orders"),{
+buyer:$("buyer").value.trim(),phone:$("phone").value.trim(),
+address:$("address").value.trim(),pin:$("pin").value.trim(),
+payment:"COD",status:"Received",items:orderItems,total,
+createdAt:serverTimestamp(),createdMillis:Date.now()
+});
+cart={};e.target.reset();renderCart();
+$("myorders").textContent="Order placed! Save ID: "+ref.id;
+alert("Order ID: "+ref.id);
+}catch(e){alert("Order failed: "+e.message)}
+finally{busy=false;$("orderButton").disabled=false}
+}
+window.placeOrder=placeOrder;
+async function trackOrder(){
+const id=$("trackid").value.trim();if(!id)return;
+try{
+const s=await getDoc(doc(fs,"orders",id));
+$("myorders").textContent=s.exists()?"Order Status: "+s.data().status:"Order not found";
+}catch(e){$("myorders").textContent=e.message}
+}
+window.trackOrder=trackOrder;
+function orderHTML(o){
+return '<div class="line"><b>#'+safe(o.id)+'</b><p>'+safe(o.buyer)+' · '+safe(o.phone)+'</p><p>'+safe(o.address)+' · '+safe(o.pin)+'</p><p>'+(o.items||[]).map(i=>safe(i.name)+' × '+i.qty).join("<br>")+'</p><b>'+money(o.total)+'</b><select onchange="changeStatus(\''+o.id+'\',this.value)">'+["Received","Packing","Dispatched","Delivered","Cancelled"].map(s=>'<option '+(o.status===s?"selected":"")+'>'+s+'</option>').join("")+'</select></div>';
+}
+function renderOrders(){
+$("stafforders").innerHTML=orders.map(orderHTML).join("")||"No orders";
+$("ownerorders").innerHTML=orders.map(orderHTML).join("")||"No orders";
+}
+async function changeStatus(id,status){
+if(!["owner","staff"].includes(role))return;
+try{await updateDoc(doc(fs,"orders",id),{status})}
+catch(e){alert(e.message)}
+}
+window.changeStatus=changeStatus;
+async function saveProduct(e){
+e.preventDefault();if(role!=="owner")return;
+const id=$("editId").value;
+const data={name:$("pname").value.trim(),size:$("psize").value.trim(),price:Number($("pprice").value),cost:Number($("pcost").value),stock:Number($("pstock").value),image:$("pimage").value.trim(),emoji:"🌶️",updatedAt:serverTimestamp()};
+try{
+if(id)await updateDoc(doc(fs,"products",id),data);
+else await addDoc(collection(fs,"products"),data);
+e.target.reset();$("editId").value="";
+$("photoPreview").classList.add("hidden");
+alert("Product saved. Photo upload requires Firebase Storage.");
+}catch(e){alert(e.message)}
+}
+window.saveProduct=saveProduct;
+function editProduct(id){
+const p=products.find(x=>x.id===id);if(!p)return;
+$("editId").value=id;
+["name","size","price","cost","stock","image"].forEach(k=>{
+const el=$("p"+k);if(el)el.value=p[k]||"";
+});
+$("pname").scrollIntoView();
+}
+window.editProduct=editProduct;
+async function deleteProduct(id){
+if(role!=="owner"||!confirm("Delete product?"))return;
+try{await deleteDoc(doc(fs,"products",id))}
+catch(e){alert(e.message)}
+}
+window.deleteProduct=deleteProduct;
+function renderInventory(){
+$("inventory").innerHTML=products.map(p=>'<div class="line"><b>'+safe(p.name)+'</b> · '+money(p.price)+' · Stock '+p.stock+'<p><button class="alt" onclick="editProduct(\''+p.id+'\')">Edit</button> <button class="danger" onclick="deleteProduct(\''+p.id+'\')">Delete</button></p></div>').join("");
+}
+async function seedProducts(){
+if(role!=="owner")return;
+try{
+for(const p of defaults){
+const {id,...data}=p;
+const ref=doc(fs,"products",id);
+if(!(await getDoc(ref)).exists())await setDoc(ref,data);
+}
+alert("Default spices added");
+}catch(e){alert(e.message)}
+}
+window.seedProducts=seedProducts;
+async function addExpense(e){
+e.preventDefault();if(role!=="owner")return;
+try{
+await addDoc(collection(fs,"expenses"),{
+name:$("expenseName").value.trim(),
+amount:Number($("expenseAmount").value),
+createdMillis:Date.now(),createdAt:serverTimestamp()
+});
+e.target.reset();
+}catch(e){alert(e.message)}
+}
+window.addExpense=addExpense;
+function renderExpenses(){
+$("expenses").innerHTML=expenses.map(x=>'<div class="line">'+safe(x.name)+' · '+money(x.amount)+'</div>').join("");
+}
+function inPeriod(ms){
+const p=$("reportPeriod").value;
+if(p==="all")return true;
+const days=p==="today"?1:p==="week"?7:30;
+return ms>=Date.now()-days*86400000;
+}
+function renderReport(){
+if(role!=="owner")return;
+const list=orders.filter(o=>inPeriod(o.createdMillis||0));
+const delivered=list.filter(o=>o.status==="Delivered");
+const sales=delivered.reduce((s,o)=>s+Number(o.total||0),0);
+const cost=delivered.reduce((s,o)=>s+(o.items||[]).reduce((a,i)=>a+i.cost*i.qty,0),0);
+const expense=expenses.filter(x=>inPeriod(x.createdMillis||0)).reduce((s,x)=>s+Number(x.amount||0),0);
+$("stats").innerHTML='<div class="stat">Orders<strong>'+list.length+'</strong></div><div class="stat">Sales<strong>'+money(sales)+'</strong></div><div class="stat">Estimated Profit<strong>'+money(sales-cost-expense)+'</strong></div>';
+$("report").innerHTML='<p>Sales: '+money(sales)+'</p><p>Product Cost: '+money(cost)+'</p><p>Expenses: '+money(expense)+'</p><h3>Estimated Profit: '+money(sales-cost-expense)+'</h3>';
+}
+window.renderReport=renderReport;
+function exportCSV(){
+if(role!=="owner")return;
+const rows=[["ID","Customer","Phone","Status","Total"],...orders.map(o=>[o.id,o.buyer,o.phone,o.status,o.total])];
+const csv=rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
+const url=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv"}));
+const a=document.createElement("a");a.href=url;a.download="star-world-orders.csv";a.click();
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+window.exportCSV=exportCSV;
+renderProducts();renderAuth();
+</script>
+</body>
+</html>
